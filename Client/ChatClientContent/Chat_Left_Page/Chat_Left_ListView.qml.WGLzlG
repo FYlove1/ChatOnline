@@ -1,0 +1,120 @@
+import QtQuick 2.15
+import QtQuick.Controls
+Item {
+    id:root
+    width: 200
+    height: 700
+    property alias otherUsersModel: other_users_ListView.model
+
+    // 定义颜色属性便于统一管理
+    property color normalColor: "#f0f0f0"      // 未选中时的浅灰色背景
+    property color selectedColor: "#d0d0d0"    // 选中时的深灰色背景
+    property color pressedColor: "#b0b0b0"     // 按下时的更深灰色
+
+
+    ListView{
+        id:other_users_ListView
+        model:testListmodel
+        anchors.fill: parent
+        highlight:Rectangle{
+            id:highLightRectangl
+            color: selectedColor
+
+        }
+        delegate: Item{
+            width: parent.width
+            height: 75
+            // 背景矩形 - 根据状态改变颜色
+            Rectangle {
+                id: background
+                anchors.fill: parent
+                color: {
+                    // if (other_users_ListView.isCurrentItem) {
+                    //     return mouseArea.pressed ? root.pressedColor : root.selectedColor
+                    // }
+                    // return mouseArea.pressed ? root.pressedColor : root.normalColor
+                    return other_users_ListView.isCurrentItem ? root.pressedColor : root.normalColor
+                }
+            }
+
+            // 鼠标点击区域
+            MouseArea {
+                id: mouseArea
+                anchors.fill: parent
+                onClicked: {
+                    other_users_ListView.currentIndex = index; // 设置选中
+                }
+            }
+
+            Image {
+                id: userAvara
+                source: model.avatar
+                width: parent.height
+                height: parent.height
+                anchors.left: parent.left
+            }
+
+            Text {
+                id: userId
+                text: model.UserId
+                font.pointSize: 15
+
+                // 关键设置：完全居中
+                anchors {
+                    left: userAvara.right
+                    right: parent.right
+                    top: parent.top
+                    bottom: parent.bottom
+                    leftMargin: 15
+                }
+
+                // 文本在可用空间内居中
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
+
+                // 文本过长时显示省略号
+                elide: Text.ElideRight
+            }
+        }
+    }
+    ListModel{
+        id:testListmodel
+        ListElement {
+            UserId: "Music"
+            avatar: "../chatgram_Web_App_UI_Kit_Telegram_Inspired_Community_/assets/avatar_3.png"
+        }
+        // ListElement {
+            UserId: "Movies"
+            avatar: "images/other.jpg"
+        }
+        ListElement {
+            UserId: "Camera"
+            avatar: "images/other.jpg"
+        }
+        ListElement {
+            UserId: "Map"
+            avatar: "images/other.jpg"
+        }
+        ListElement {
+            UserId: "Calendar"
+            avatar: "images/other.jpg"
+        }
+        ListElement {
+            UserId: "Messaging"
+            avatar: "images/other.jpg"
+        }
+        ListElement {
+            UserId: "Todo List"
+            avatar: "images/other.jpg"
+        }
+        ListElement {
+            UserId: "Contacts"
+            avatar: "images/other.jpg"
+        }
+        ListElement {
+            UserId: "Settings"
+            avatar: "images/other.jpg"
+        }
+
+    }
+}

@@ -1,0 +1,108 @@
+// UserModelManager.qml - 增强的模型管理器
+import QtQuick 2.15
+import Qt.labs.settings 1.1
+
+QtObject {
+    id: modelManager
+
+    // // 当前登录用户ID（从设置中读取）
+    // property string currentUserId: settings.currentUserId
+    // Settings {
+    //     id: settings
+    //     property string currentUserId: "default_user"
+    // }
+
+    // 文件操作助手
+    //property alias fileIO: fileIO
+    FileIO { id: fileIO
+        Component.onCompleted: {
+
+        }
+
+    }
+
+    // 存储所有用户模型的容器
+    property var userModels: ({})
+
+    // 获取或创建用户模型
+    function getModel(userId) {
+        if (!userModels[userId]) {
+            console.log("为用户创建新模型:", userId)
+
+            // 创建新模型
+            userModels[userId] = Qt.createQmlObject(`
+                import QtQuick 2.15
+                ListModel {
+                    dynamicRoles: true
+                }`, modelManager, "model_" + userId.replace(/[^a-zA-Z0-9]/g, "_"))
+
+            // 从存储加载历史消息
+            loadMessages(userId)
+        }
+        return userModels[userId]
+    }
+
+    // 添加消息到指定用户模型
+    function addMessage(userId, sender, text, avatar, isMine) {
+        var model = getModel(userId)
+        var timestamp = new Date().toLocaleTimeString(Qt.locale(), Locale.ShortFormat)
+
+        // 创建消息对象
+        var msg = {
+            isMine: isMine,
+            text: text,
+            avatar: avatar,
+            time: timestamp,
+            sender: sender
+        }
+
+        // 添加到模型
+        model.append(msg)
+
+        // 保存到存储
+        saveMessages(userId)
+    }
+
+    // 加载用户消息
+    function loadMessages(userId) {
+        var filePath = fileIO.getUserDataPath(currentUserId) + "/" + userId + ".json"
+        var messages = fileIO.readJson(filePath)
+
+        var model = userModels[userId]
+        if (model && messages.length > 0) {
+            for (var i = 0; i < messages.length; i++) {
+                model.append(messages[i])
+            }
+            console.log("为", userId, "加载了", messages.length, "条消息")
+        }
+    }
+
+    // 保存用户消息
+    function saveMessages(userId) {
+        var model = userModels[userId]
+        if (!model) return
+
+        var messages = []
+        for (var i = 0; i < model.count; i++) {
+            messages.push(model.get(i))
+        }
+
+        var filePath = fileIO.getUserDataPath(currentUserId) + "/" + userId + ".json"
+        fileIO.writeJson(filePath, messages)
+        console.log("为", userId, "保存了", messages.length, "条消息")
+    }
+
+    // 设置当前用户
+    function setCurrentUser(userId) {
+        settings.currentUserId = userId
+        currentUserId = userId
+        console.log("当前用户设置为:", userId)
+    }
+
+    // 清理所有模型
+    function cleanup() {
+        for (var userId in userModels) {
+            saveMessages(userId)
+        }
+    }
+}

@@ -1,0 +1,185 @@
+import QtQuick
+import QtQuick.Controls
+import ChatClient
+import "./login_Screen_House_Rental_Solution_Community_"
+import MyNetWork 1.0
+import QtQuick.Layouts
+Window {
+    id: mainWindow
+
+    visible: true
+    title: "页面切换演示"
+
+
+
+    // 定义页面路径列表
+    property var pageList: [
+        "LoginPageAll.qml",
+        "TestAllthings.qml",
+        "TalkPageAll.qml",
+        "TalkPageAll.qml",
+        "TestAllthings.qml",
+    ]
+
+    // 当前页面索引
+    property int currentPageIndex: 0
+
+    // 修复1: 添加当前页面路径属性
+    property string currentPagePath: pageList[currentPageIndex]
+
+
+
+    ColumnLayout {
+        anchors.fill: parent
+        spacing: 10
+
+        // 页面加载器
+        Loader {
+            id: pageLoader
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            // 修复2: 绑定到当前页面路径属性
+            source: currentPagePath
+
+            // 页面切换动画
+            Behavior on opacity {
+                NumberAnimation { duration: 300 }
+            }
+            onSourceChanged: {
+                console.log("current is", source);
+            }
+
+            // 修复3: 添加状态处理
+            onStatusChanged: {
+                if (status === Loader.Ready) {
+                    console.log("页面加载完成:", source);
+                } else if (status === Loader.Error) {
+                    console.error("页面加载失败:", source);
+                }
+            }
+        }
+
+        // 控制面板
+        RowLayout {
+            Layout.alignment: Qt.AlignHCenter
+            Layout.bottomMargin: 20
+            spacing: 20
+
+            // 上一页按钮
+            Button {
+                text: "上一页"
+                width: 100
+                onClicked: {
+                    // 修复4: 确保索引计算正确
+                    currentPageIndex = (currentPageIndex + pageList.length - 1) % pageList.length;
+                    console.log("切换到页面索引:", currentPageIndex);
+                }
+            }
+
+            // 页面指示器
+            PageIndicator {
+                count: pageList.length
+                currentIndex: currentPageIndex
+                interactive: true
+                onCurrentIndexChanged: {
+                    currentPageIndex = currentIndex;
+                }
+            }
+
+            // 下一页按钮
+            Button {
+                text: "下一页"
+                width: 100
+                onClicked: {
+                    // 修复5: 确保索引计算正确
+                    currentPageIndex = (currentPageIndex + 1) % pageList.length;
+                    console.log("切换到页面索引:", currentPageIndex);
+                }
+            }
+        }
+    }
+
+    // 修复6: 使用属性绑定确保页面更新
+    onCurrentPageIndexChanged: {
+        console.log("页面索引变化:", currentPageIndex);
+        currentPagePath = pageList[currentPageIndex];
+    }
+
+    // 初始加载登录页面
+    Component.onCompleted: {
+        console.log("应用启动，加载初始页面");
+        currentPagePath = pageList[0];
+        //直接进行 连接尝试 先连接一下信号
+        NetworkManager.connectResult.connect(onConnectResult)
+        NetworkManager.loginResult.connect(onLoginResult)
+        //这里调用端口和地址先无需指定, 因为C++端是固定的
+        //NetworkManager.connectToServer("11111",8080)
+
+    }
+
+    // Connections{
+    //     target: NetworkManager
+    //     function onLoginResult(success,message){
+    //         console.log("Login result is ", success)
+    //     }
+    // }
+
+    function onConnectResult(success, message) {
+        console.log("Connect result:", success, message)
+        if (success) {
+
+        } else {
+
+        }
+    }
+
+    function onLoginResult(success, message) {
+        console.log("Login result:", success, message)
+        if (success) {
+            //添加获取用户列表的方法 , 用于之后聊天
+            currentPageIndex = 2
+
+        } else {
+        }
+    }
+}
+// Window {
+//     width: pageLoder.width
+//     height: pageLoder.height
+
+//     visible: true
+//     title: "ChatClient"
+
+//     Row{
+//         spacing: 10
+//         Loader{
+//             id:pageLoder
+//             Component.onCompleted: {
+//                 pageLoder.source = "LoginPageAll.qml"
+//             }
+//         }
+//         Button{
+//             width: 50
+//             height: 50
+//             text: "change the page"
+//             onClicked: {
+
+//             }
+//         }
+//     }
+
+
+
+
+//     // Login_page{
+//     //     id:loginPage
+//     //     loginButton.onClicked: {
+//     //         NetworkManager.login(loginPage.accountText,loginPage.passswordText)
+//     //         console.log("login clicked")
+//     //     }
+//     // }
+//     // Screen01 {
+//     //     id: mainScreen
+//     // }
+// }
+
